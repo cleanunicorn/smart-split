@@ -7,6 +7,7 @@ contract Splitter {
 
     event SplitValue(address receiver, uint256 weight, uint256 amount);
     event Sum(uint256 sum);
+    event SplitValueReceived(uint256 amount);
 
     function partnerAdd(address partner, uint256 weight) public {
         require(partnersExists(partner) == false);
@@ -44,8 +45,8 @@ contract Splitter {
         Sum(sum);
 
         for (i = 0; i < partners.length; i++) {
-            var dst = partners[i];
-            var value = partnersWeight[i] / sum * msg.value;
+            address dst = partners[i];
+            uint256 value = msg.value * partnersWeight[i] / sum;
             dst.transfer(value);
 
             SplitValue(dst, partnersWeight[i], value);
