@@ -1,6 +1,6 @@
 pragma solidity ^0.4.15;
 
-contract Splitter1 {
+contract Splitter {
     // state
     address[] private partners;
     uint256[] partnersWeight;
@@ -8,14 +8,14 @@ contract Splitter1 {
     event SplitValue(address receiver, uint256 weight, uint256 amount);
     event Sum(uint256 sum);
 
-    function addPartner(address partner, uint256 weight) public {
-        require(existsPartner(partner) == false);
+    function partnerAdd(address partner, uint256 weight) public {
+        require(partnersExists(partner) == false);
 
         partners.push(partner);
         partnersWeight.push(weight);
     }
 
-    function existsPartner(address partner) constant public returns (bool) {
+    function partnersExists(address partner) constant public returns (bool) {
         for (uint256 i = 0; i < partners.length; i++) {
             if (partner == partners[i]) {
                 return true;
@@ -23,6 +23,16 @@ contract Splitter1 {
         }
 
         return false;
+    }
+
+    function partnerWeight(address partner) constant public returns (uint256) {
+        for (uint256 i = 0; i < partners.length; i++) {
+            if (partner == partners[i]) {
+                return uint256(partnersWeight[i]);
+            }
+        }
+
+        return uint256(0);
     }
 
     function split() payable public {

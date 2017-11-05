@@ -1,0 +1,11 @@
+{
+  "name": "smart-split",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "git@github.com:hydrarulz/smart-split.git",
+  "author": "Daniel Luca <daniel.luca@consensys.net>",
+  "license": "MIT",
+  "dependencies": {
+    "bignumber.js": "^4.1.0"
+  }
+}
