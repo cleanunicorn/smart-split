@@ -20,7 +20,6 @@ contract('Splitter', function(accounts){
             return inst.partnerAdd(partner1, 100)
         }).then(function(result) {
             assert.equal(1, result.receipt.status, 'Transaction adding partner not successful');
-
             return inst.partnersExists(partner1);
         }).then(function(result) {
             assert.isTrue(result, 'existsPartner() should return true added partner');
