@@ -16,7 +16,8 @@ contract('Splitter', function (accounts) {
 
     it('should save partner with correct weight', function () {
         var splitter;
-        return Splitter.new({ from: owner }).then(function (instance) {
+
+        Splitter.new({ from: owner }).then(function (instance) {
             splitter = instance;
             return splitter.partnerAdd(partner_one, 100, { from: owner })
         }).then(function (result) {
@@ -39,7 +40,7 @@ contract('Splitter', function (accounts) {
         var partner_one_starting_balance = web3.eth.getBalance(partner_one);
         var partner_two_starting_balance = web3.eth.getBalance(partner_two);
 
-        return Splitter.new({ from: owner }).then(function (instance) {
+        Splitter.new({ from: owner }).then(function (instance) {
             splitter = instance;
             splitter.partnerAdd(partner_one, 1, { from: owner });
         }).then(function () {
@@ -54,6 +55,8 @@ contract('Splitter', function (accounts) {
         }).then(function () {
             return splitter.split({ from: payer, value: sendValue });
         }).then(function (result) {
+            assert.isTrue(result.receipt.gasUsed < 90000, "Split() should use less than 90000 gas")
+
             assert.equal(
                 web3.eth.getBalance(partner_one).toNumber(),
                 partner_one_starting_balance.add(sendValue.div(2)).toNumber(),
@@ -66,16 +69,10 @@ contract('Splitter', function (accounts) {
                 "Partner two should receive 50 wei"
             )
         });
-    })
-});
+    });
 
-contract('Splitter', function (accounts) {
     it('should allow only owner or partners to make changes', function () {
         var splitter;
-
-        owner = accounts[0];
-        partner_one = accounts[1];
-        partner_two = accounts[2];
 
         Splitter.new({ from: owner }).then(function (instance) {
             splitter = instance;
@@ -91,10 +88,6 @@ contract('Splitter', function (accounts) {
     it('should allow partners to add more partners', function () {
         var splitter;
 
-        var owner = accounts[0];
-        var partner_one = accounts[1];
-        var partner_two = accounts[2];
-
         Splitter.new({ from: owner }).then(function (instance) {
             splitter = instance;
             return splitter.partnerAdd(partner_one, 1, { from: owner });
@@ -107,5 +100,5 @@ contract('Splitter', function (accounts) {
         }).then(function (result) {
             assert.isTrue(result, "Partner one should be able to add more partners");
         })
-    })
-})
+    });
+});
