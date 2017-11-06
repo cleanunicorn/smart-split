@@ -7,6 +7,7 @@ contract('Splitter', function (accounts) {
     const owner = accounts[0];
     const partner_one = accounts[1];
     const partner_two = accounts[2];
+    const somebody = accounts[8];
     const payer = accounts[9];
 
     it('should not error', function (done) {
@@ -14,7 +15,7 @@ contract('Splitter', function (accounts) {
         done();
     });
 
-    it('should save partner with correct weight', function () {
+    it('should save partner with correct weight', function (done) {
         var splitter;
 
         Splitter.new({ from: owner }).then(function (instance) {
@@ -29,10 +30,11 @@ contract('Splitter', function (accounts) {
             return splitter.partnerWeight(partner_one);
         }).then(function (result) {
             assert.isTrue(result.equals(100), 'Weight should match the saved weight for a partner');
+            done();
         })
     });
 
-    it('should split funds to registered partners', function () {
+    it('should split funds to registered partners', function (done) {
         var splitter;
 
         var sendValue = new BigNumber(web3.toWei(100, "wei"))
@@ -68,24 +70,28 @@ contract('Splitter', function (accounts) {
                 partner_two_starting_balance.add(sendValue.div(2)).toNumber(),
                 "Partner two should receive 50 wei"
             )
+
+            done();
         });
     });
 
-    it('should allow only owner or partners to make changes', function () {
+    it('should allow only owner or partners to make changes', function (done) {
         var splitter;
 
         Splitter.new({ from: owner }).then(function (instance) {
             splitter = instance;
-            return splitter.partnerAdd(partner_two, 1, { from: partner_one })
+            return splitter.partnerAdd(partner_one, 1, { from: somebody })
         }).then(function (result) {
-            assert.equal(0, result.receipt.status, "Adding a partner by a non partner / non owner should fail");
-            return splitter.partnerExists(partner_two);
+            assert.fail("Trying to add a partner by somebody unauthorized should fail");
+        }).catch(function (result) {
+            return splitter.partnerExists(partner_one);
         }).then(function (result) {
             assert.isTrue(!result, "Should not have been able to add a partner");
+            done();
         });
     });
 
-    it('should allow partners to add more partners', function () {
+    it('should allow partners to add more partners', function (done) {
         var splitter;
 
         Splitter.new({ from: owner }).then(function (instance) {
@@ -99,6 +105,7 @@ contract('Splitter', function (accounts) {
             return splitter.partnerExists(partner_two);
         }).then(function (result) {
             assert.isTrue(result, "Partner one should be able to add more partners");
+            done();
         })
     });
 });
