@@ -7,7 +7,7 @@ contract Splitter {
     uint256[] partnersWeight;
 
     // Constructor
-    function Splitter() {
+    function Splitter() public {
         owner = msg.sender;
     }
 
