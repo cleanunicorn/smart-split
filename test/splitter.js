@@ -15,23 +15,17 @@ contract('Splitter', function (accounts) {
         done();
     });
 
-    it('should save partner with correct weight', function (done) {
-        var splitter;
+    it('should save partner with correct weight', async function () {
 
-        Splitter.new({ from: owner }).then(function (instance) {
-            splitter = instance;
-            return splitter.partnerAdd(partner_one, 100, { from: owner })
-        }).then(function (result) {
-            assert.equal(1, result.receipt.status, 'Transaction adding partner not successful');
-            return splitter.partnerExists(partner_one);
-        }).then(function (result) {
-            assert.isTrue(result, 'existsPartner() should return true added partner');
-        }).then(function () {
-            return splitter.partnerWeight(partner_one);
-        }).then(function (result) {
-            assert.isTrue(result.equals(100), 'Weight should match the saved weight for a partner');
-            done();
-        })
+        const instance = await Splitter.new({ from: owner });
+        const result = await instance.partnerAdd(partner_one, 100, { from: owner });
+        assert.equal(1, result.receipt.status, 'Transaction adding partner not successful');
+
+        const existsRes = await instance.partnerExists(partner_one);
+        assert.isTrue(existsRes, 'existsPartner() should return true added partner');
+
+        const weightRes = await instance.partnerWeight(partner_one);
+        assert.isTrue(weightRes.equals(100), 'Weight should match the saved weight for a partner');
     });
 
     it('should split funds to registered partners', function (done) {
