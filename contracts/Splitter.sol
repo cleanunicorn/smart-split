@@ -42,9 +42,9 @@ contract Splitter {
         return uint256(0);
     }
 
-    // split it is called when receiving funds 
+    // fallback function is called when receiving funds 
     // and it splits the funds to the partners according to the allocated weights
-    function split() public payable {
+    function () public payable {
         uint256 sum;
         for (uint256 i = 0; i < partners.length; i++) {
             sum = sum + partnersWeight[i];

@@ -49,7 +49,7 @@ contract('Splitter', function (accounts) {
         }).then(function (result) {
             assert.isTrue(result);
         }).then(function () {
-            return splitter.split({ from: payer, value: sendValue });
+            return splitter.send(sendValue, { from: payer });
         }).then(function (result) {
             assert.isTrue(result.receipt.gasUsed < 90000, "Split() should use less than 90000 gas")
 
