@@ -7,6 +7,7 @@ contract('Splitter', function (accounts) {
     const owner = accounts[0];
     const partner_one = accounts[1];
     const partner_two = accounts[2];
+    const partner_three = accounts[3];
     const somebody = accounts[8];
     const payer = accounts[9];
 
@@ -29,12 +30,12 @@ contract('Splitter', function (accounts) {
 
     it('should split funds to registered partners', async function () {
         const sendValue = new BigNumber(web3.toWei(100, "wei"))
-        
+
         const partner_one_starting_balance = web3.eth.getBalance(partner_one);
         const partner_two_starting_balance = web3.eth.getBalance(partner_two);
-        
+
         const splitter = await Splitter.new({ from: owner });
-        
+
         const partner_one_add_result = await splitter.partnerAdd(partner_one, 1, { from: owner });
         const partner_two_add_result = await splitter.partnerAdd(partner_two, 1, { from: owner });
 
@@ -48,7 +49,7 @@ contract('Splitter', function (accounts) {
             "Owner should be able to add partner one"
         );
 
-        const tx = await splitter.send(sendValue, {from: payer});
+        const tx = await splitter.send(sendValue, { from: payer });
 
         assert.isTrue(
             tx.receipt.gasUsed < 90000,
@@ -84,12 +85,60 @@ contract('Splitter', function (accounts) {
         const splitter = await Splitter.new({ from: owner });
 
         const partner_one_added = await splitter.partnerAdd(partner_one, 1, { from: owner });
-        assert.equal(1, partner_one_added.receipt.status, "Owner should be able allowed to add partners");
-            
+        assert.equal(1, partner_one_added.receipt.status, "Owner should be allowed to add partners");
+
         const partner_two_added = await splitter.partnerAdd(partner_two, 1, { from: partner_one });
-        assert.equal(1, partner_two_added.receipt.status, "Owner should be able allowed to add partners");
+        assert.equal(1, partner_two_added.receipt.status, "Owner should be allowed to add partners");
 
         const partner_two_exists = await splitter.partnerExists(partner_two);
         assert.isTrue(partner_two_exists, "Partner one should be able to add more partners");
+    });
+
+    it('should allow clearing all partners', async function () {
+        const splitter = await Splitter.new({ from: owner });
+
+        const partner_one_added = await splitter.partnerAdd(partner_one, 1, { from: owner });
+        assert.equal(1, partner_one_added.receipt.status, "Owner should be allowed to add partners ");
+        const partner_two_added = await splitter.partnerAdd(partner_two, 1, { from: owner });
+        assert.equal(1, partner_two_added.receipt.status, "Owner should be allowed to add partners ");
+
+        try {
+            const partners_removed = await splitter.partnerRemove({ from: somebody });
+            assert.fail("Non owner or partner should not be able to remove")
+        } catch (e) {
+            const partner_one_exists = await splitter.partnerExists(partner_one);
+            assert.isTrue(partner_one_exists, "Partner one should still be there")
+
+            const partner_two_exists = await splitter.partnerExists(partner_two);
+            assert.isTrue(partner_two_exists, "Partner two should still be there");
+        }
+
+        const partners_removed = await splitter.partnersRemove({ from: partner_one });
+        assert.equal(1, partner_one_added.receipt.status, "Partner one should be able to remove himself");
+        assert.isTrue(
+            ! await splitter.partnerExists.call(partner_one),
+            "Partner one should not be there anymore"
+        );
+        assert.isTrue(
+            ! await splitter.partnerExists.call(partner_two),
+            "Partner two should not be there anymore"
+        );
+    });
+
+    it('should allow adding partners after removing all', async function () {
+        const splitter = await Splitter.new({ from: owner });
+        splitter.partnersRemove({ from: owner });
+
+        const partner_three_added_after_delete = await splitter.partnerAdd(partner_three, 1, { from: owner })
+        assert.equal(
+            1,
+            partner_three_added_after_delete.receipt.status,
+            "Should be able to add partner three after deleting all of them"
+        );
+
+        assert.isTrue(
+            await splitter.partnerExists.call(partner_three),
+            "Partner three should be added"
+        );
     });
 });

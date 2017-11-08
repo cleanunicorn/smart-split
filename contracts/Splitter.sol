@@ -42,7 +42,13 @@ contract Splitter {
         return uint256(0);
     }
 
-    // fallback function is called when receiving funds 
+    // partnersRemove removes all partners
+    function partnersRemove() public onlyOwnerOrPartner {
+        partners.length = 0;
+        partnersWeight.length = 0;
+    }
+
+    // fallback function is called when receiving funds
     // and it splits the funds to the partners according to the allocated weights
     function () public payable {
         uint256 sum;
