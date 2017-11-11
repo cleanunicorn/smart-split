@@ -108,14 +108,10 @@ contract Splitter {
         for (i = 0; i < partners.length; i++) {
             address dst = partners[i];
             uint256 value = msg.value * partnersWeight[i] / sum;
-            dst.transfer(value);
-
             partnersWithdrawAvailable[i] += value;
 
             SplitValue(dst, partnersWeight[i], value);
         }
-
-
     }
 
     // onlyOwnerOrPartner modifier checks if the originator of the transaction is the owner or one of the partners
