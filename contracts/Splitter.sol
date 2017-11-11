@@ -91,13 +91,15 @@ contract Splitter {
 
         if (msg.sender == owner) {
             allowed = true;
-        }
-
-        for (uint256 i = 0; i < partners.length; i++) {
-            if (msg.sender == partners[i]) {
-                allowed = true;
+        } else { //save some cycles?
+            for (uint256 i = 0; i < partners.length; i++) {
+                if (msg.sender == partners[i]) {
+                    allowed = true;
+                    break; //save some cycles?
+                }
             }
         }
+
 
         require(allowed);
         _;
