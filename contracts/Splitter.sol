@@ -14,7 +14,7 @@ contract Splitter {
 
     // partnerAdd adds a new partner to the list
     // It saves the partner address and the weight of the partner
-    function partnerAdd(address partner, uint256 weight) public onlyOwnerOrPartner  {
+    function partnerAdd(address partner, uint256 weight) public onlyOwnerOrPartner {
         require(partnerExists(partner) == false);
 
         partners.push(partner);
