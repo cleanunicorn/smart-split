@@ -141,4 +141,99 @@ contract('Splitter', function (accounts) {
             "Partner three should be added"
         );
     });
+
+    it('should save how much each person should receive', async function () {
+        const sendValue = new BigNumber(web3.toWei(100, "wei"));
+
+        const partner_one_starting_balance = web3.eth.getBalance(partner_one);
+        const partner_two_starting_balance = web3.eth.getBalance(partner_two);
+        const partner_three_starting_balance = web3.eth.getBalance(partner_three);
+
+        const splitter = await Splitter.new({ from: owner });
+        splitter.partnerAdd(partner_one, 1, { from: owner });
+        splitter.partnerAdd(partner_two, 9, { from: owner });
+
+        await splitter.send(sendValue, { from: payer });
+        assert.equal(
+            10,
+            await splitter.partnerWithdrawAvailable.call(partner_one),
+            "Partner one should have 10 wei available to withdraw"
+        );
+        assert.equal(
+            90,
+            await splitter.partnerWithdrawAvailable.call(partner_two),
+            "Partner two should have 90 wei available to withdraw"
+        );
+    });
+
+    it('should allow partners to withdraw available funds', async function () {
+        const sendValue = new BigNumber(web3.toWei(100, "wei"));
+
+        const partner_one_starting_balance = web3.eth.getBalance(partner_one);
+        const partner_two_starting_balance = web3.eth.getBalance(partner_two);
+        const partner_three_starting_balance = web3.eth.getBalance(partner_three);
+
+        const splitter = await Splitter.new({ from: owner });
+        splitter.partnerAdd(partner_one, 1, { from: owner });
+        splitter.partnerAdd(partner_two, 9, { from: owner });
+
+        await splitter.send(sendValue, { from: payer });
+
+        splitter.partnerAdd(partner_three, 10, { from: owner });
+
+        assert.equal(
+            10 + 5, // previous 10 plus another ( 1 / 1 + 9 + 10 ) * 100
+            await splitter.partnerWithdrawAvailable.call(partner_one),
+            "Partner one should have another 10 wei available"
+        );
+        assert.equal(
+            90 + 45, // previous 90 plus another ( 9 / 1 + 9 + 10 ) * 100
+            await splitter.partnerWithdrawAvailable.call(partner_two),
+            "Partner two should have another 90 wei available"
+        );
+        assert.equal(
+            0 + 50, // 0 previous value plus ( 10 / 20 * 100 )
+            await splitter.partnerWithdrawAvailable.call(partner_three),
+            "Partner three should have another 100 wei available"
+        );
+
+        await splitter.withdraw({ from: partner_one });
+        assert.equal(
+            partner_one_starting_balance.add(10 + 5).toNumber(),
+            web3.eth.getBalance(partner_one).toNumber(),
+            "Partner one should withdraw 10 + 5 wei"
+        );
+
+        assert.equal(
+            0,
+            await splitter.partnerWithdrawAvailable.call(partner_one),
+            "After a successful withdraw the available value shout be set to zero"
+        )
+
+        // try {
+        //     await splitter.withdraw({ from: partner_one });
+        //     assert.fail("A withdraw with zero funds available should fail");
+        // } catch (e) {}
+
+        // assert.equal(
+        //     partner_one_starting_balance.add(10 + 5).toNumber(),
+        //     web3.eth.getBalance(partner_one).toNumber(),
+        //     "Partner one should not be able to withdraw additional funds"
+        // );
+
+        // await splitter.withdraw({ from: partner_two });
+        // assert.equal(
+        //     partner_two_starting_balance.add(90 + 45).toNumber(),
+        //     web3.eth.getBalance(partner_two).toNumber(),
+        //     "Partner two should withdraw 90 + 45 wei"
+        // );
+
+        // await splitter.withdraw({ from: partner_three });
+        // assert.equal(
+        //     partner_three_starting_balance.add(50).toNumber(),
+        //     web3.eth.getBalance(partner_three).toNumber(),
+        //     "Partner three should withdraw 100 wei"
+        // );
+
+    });
 });

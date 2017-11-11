@@ -5,6 +5,7 @@ contract Splitter {
     address owner;
     address[] private partners;
     uint256[] partnersWeight;
+    uint256[] partnersWithdrawAvailable;
 
     // Splitter constructs the contract and saves the owner of the contract
     function Splitter() public {
@@ -18,6 +19,7 @@ contract Splitter {
 
         partners.push(partner);
         partnersWeight.push(weight);
+        partnersWithdrawAvailable.push(0);
     }
 
     // partnerExists returns true if a partner exists in the list, false otherwise
@@ -46,6 +48,33 @@ contract Splitter {
     function partnersRemove() public onlyOwnerOrPartner {
         partners.length = 0;
         partnersWeight.length = 0;
+        partnersWithdrawAvailable.length = 0;
+    }
+
+    // partnerWithdrawAvailable returns how much can a partner withdraw at this time
+    function partnerWithdrawAvailable(address partner) public constant returns (uint256) {
+        for (uint256 i = 0; i < partners.length; i++) {
+            if (partner == partners[i]) {
+                return partnersWithdrawAvailable[i];
+            }
+        }
+
+        return uint256(0);
+    }
+
+    // withdraw sends the available funds to the specified partner and sets available funds
+    // to withdraw to zero
+    function withdraw() public onlyOwnerOrPartner {
+        uint256 available = partnerWithdrawAvailable(msg.sender);
+        require(available > 0);
+
+        msg.sender.transfer(available);
+        for (uint256 i = 0; i < partners.length; i++) {
+            if (partners[i] == msg.sender) {
+                partnersWithdrawAvailable[i] = 0;
+                break;
+            }
+        }
     }
 
     // fallback function is called when receiving funds
@@ -81,8 +110,12 @@ contract Splitter {
             uint256 value = msg.value * partnersWeight[i] / sum;
             dst.transfer(value);
 
+            partnersWithdrawAvailable[i] += value;
+
             SplitValue(dst, partnersWeight[i], value);
         }
+
+
     }
 
     // onlyOwnerOrPartner modifier checks if the originator of the transaction is the owner or one of the partners
